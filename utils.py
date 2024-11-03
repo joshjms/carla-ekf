@@ -1,3 +1,4 @@
+import numpy as np
 import math
 import xml.etree.ElementTree as ET
 
@@ -50,8 +51,6 @@ def get_latlon_ref(world):
                         if '+lon_0' in item:
                             lon_ref = float(item.split('=')[1])
     return lat_ref, lon_ref
-
-import numpy as np
 
 def euler_to_quaternion(roll, pitch, yaw):
     """
