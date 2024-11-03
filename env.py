@@ -25,7 +25,13 @@ class Environment:
         self.ekf = ExtendedKalmanFilter(
             p_init=np.array([self.spawn_point.location.x, self.spawn_point.location.y, self.spawn_point.location.z]),
             v_init=np.array([0, 0, 0]),
-            q_init=np.array([1, 0, 0, 0]),
+            q_init=np.array(
+                euler_to_quaternion(
+                    self.spawn_point.rotation.roll,
+                    self.spawn_point.rotation.pitch,
+                    self.spawn_point.rotation.yaw
+                )
+            ),
         )
 
     def run(self):
