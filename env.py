@@ -66,45 +66,55 @@ class Environment:
                 self.ekf.recv_gnss_data(gnss_to_xyz(self.lat_ref, self.lon_ref, gnss_data.latitude, gnss_data.longitude, gnss_data.altitude))
 
     def display(self):
-        # Display the true position of the car
-        true_x = self.true_p[:, 0]
-        true_y = self.true_p[:, 1]
-        true_z = self.true_p[:, 2]
-
-        p_est, v_est, q_est = self.ekf.get_estimates()
-
-        x_est = p_est[:, 0]
-        y_est = p_est[:, 1]
-        z_est = p_est[:, 2]
-
-        plt.figure()
-        plt.plot(true_x, true_y, label='True Path', color='blue', marker='o')
-        plt.plot(x_est, y_est, label='Estimated Path', color='red', marker='x')
-
-        plt.xlabel('X')
-        plt.ylabel('Y')
-        plt.title('True vs Estimated Path of the Car (2D)')
-        plt.legend()
-
-        plt.show()
-
-        indices = range(len(true_x))
-        plt.figure()
-        plt.plot(indices, true_x, label='True X', color='blue', marker='o')
-        plt.plot(indices, x_est, label='Estimated X', color='red', marker='x')
-
-        plt.xlabel('Index')
-        plt.ylabel('X Coordinate')
-        plt.title('True vs Estimated X Coordinate for Each Index')
-        plt.legend()
-
-        plt.show()
+        self.show_est_traj_fig()
+        self.show_est_traj_fig_2d()
 
     def cleanup(self):
         try:
             self.car.destroy()
         except:
             pass
+
+    def show_est_traj_fig(self):
+        est_traj_fig = plt.figure()
+        ax = est_traj_fig.add_subplot(111, projection='3d')
+
+        p_est = self.ekf.get_estimates()[0]
+
+        ax.plot(p_est[:,0], p_est[:,1], p_est[:,2], label='Estimated')
+        ax.plot(self.true_p[:,0], self.true_p[:,1], self.true_p[:,2], label='Ground Truth')
+        ax.set_xlabel('Easting [m]')
+        ax.set_ylabel('Northing [m]')
+        ax.set_zlabel('Up [m]')
+        ax.set_title('Ground Truth and Estimated Trajectory')
+        ax.set_xlim(-250, 250)
+        ax.set_ylim(-250, 250)
+        ax.set_zlim(-2, 2)
+        ax.set_xticks([-250, -200, -150, -100, -50, 0, 50, 100, 150, 200])
+        ax.set_yticks([-250, -200, -150, -100, -50, 0, 50, 100, 150, 200])
+        ax.set_zticks([-2, -1, 0, 1, 2])
+        ax.legend(loc=(0.62,0.77))
+        ax.view_init(elev=45, azim=-50)
+        plt.show()
+
+    def show_est_traj_fig_2d(self):
+        est_traj_fig = plt.figure()
+        ax = est_traj_fig.add_subplot(111)
+
+        p_est = self.ekf.get_estimates()[0]
+
+        ax.plot(p_est[:,0], p_est[:,1], label='Estimated')
+        ax.plot(self.true_p[:,0], self.true_p[:,1], label='Ground Truth')
+        ax.set_xlabel('Easting [m]')
+        ax.set_ylabel('Northing [m]')
+        ax.set_title('Ground Truth and Estimated Trajectory')
+        ax.set_xlim(-250, 250)
+        ax.set_ylim(-250, 250)
+        ax.set_xticks([-250, -200, -150, -100, -50, 0, 50, 100, 150, 200])
+        ax.set_yticks([-250, -200, -150, -100, -50, 0, 50, 100, 150, 200])
+        ax.legend(loc=(0.62,0.77))
+
+        plt.show()
 
 def create_env():
     return Environment()
