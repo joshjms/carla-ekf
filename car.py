@@ -9,7 +9,7 @@ class Car:
         self.world = world
         self.client = client
 
-        vehicle_bp = world.get_blueprint_library().filter('vehicle.*')[1]
+        vehicle_bp = world.get_blueprint_library().filter('vehicle.dodge.charger_2020')[0]
         self.vehicle = world.spawn_actor(vehicle_bp, spawn_point)
         print(self.vehicle)
 

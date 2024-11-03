@@ -1,8 +1,10 @@
 import carla
 import numpy as np
 import matplotlib.pyplot as plt
-import time
+import imageio
+import os
 
+from camera import WorldCamera
 from car import Car
 from ekf import ExtendedKalmanFilter
 from utils import gnss_to_xyz, get_latlon_ref, euler_to_quaternion
@@ -11,6 +13,8 @@ class Environment:
     def __init__(self):
         self.client = carla.Client('localhost', 2000)
         self.world = self.client.get_world()
+
+        self.world_camera = WorldCamera(self.world)
 
         self.traffic_manager = self.client.get_trafficmanager(8000)
 
@@ -68,10 +72,12 @@ class Environment:
     def display(self):
         self.show_est_traj_fig()
         self.show_est_traj_fig_2d()
+        self.show_world_camera()
 
     def cleanup(self):
         try:
             self.car.destroy()
+            self.world_camera.destroy()
         except:
             pass
 
@@ -115,6 +121,19 @@ class Environment:
         ax.legend(loc=(0.62,0.77))
 
         plt.show()
+
+    def show_world_camera(self):
+        image_folder = 'output'
+        image_files = os.listdir(image_folder)
+        print(image_files)
+        
+        images = []
+        for filename in image_files:
+            images.append(imageio.imread(os.path.join(image_folder, filename)))
+        imageio.mimsave('world_cam.gif', images)
+
+        
+
 
 def create_env():
     return Environment()
