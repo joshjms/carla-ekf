@@ -141,7 +141,13 @@ class ExtendedKalmanFilter:
             pass
 
     def recv_gnss_data(self, data):
-        # print('GNSS: ', data)
+        # Compute the Euclidean distance between the estimated position and the GNSS data
+        # to decide whether to update the state or not
+        # We can assume the GNSS data is compromised if the distance is greater than
+        # THRESHOLD meters.
+        distance = np.linalg.norm(self.p_est[-1] - data)
+        print(distance)
+
         try:
             self.measurement_update(data)
         except Exception as e:

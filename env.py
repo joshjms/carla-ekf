@@ -3,6 +3,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 import imageio
 import os
+import threading
+import time
 
 from camera import WorldCamera
 from car import Car
@@ -14,7 +16,7 @@ class Environment:
         self.client = carla.Client('localhost', 2000)
         self.world = self.client.get_world()
 
-        self.world_camera = WorldCamera(self.world)
+        # self.world_camera = WorldCamera(self.world)
 
         self.traffic_manager = self.client.get_trafficmanager(8000)
 
@@ -45,7 +47,12 @@ class Environment:
         self.traffic_manager.ignore_lights_percentage(self.car.vehicle, 100.0)
         self.traffic_manager.ignore_signs_percentage(self.car.vehicle, 100.0)
 
+        self.spoofed = False
+
         self.car.start()
+
+        spoof_thread = threading.Thread(target=self.spoof_car_after, args=(10,))
+        spoof_thread.start()
 
         while True:
             self.world.tick()
@@ -67,12 +74,31 @@ class Environment:
             
             if gnss_data is not None:
                 # We get the GNSS data to update the EKF algorithm
-                self.ekf.recv_gnss_data(gnss_to_xyz(self.lat_ref, self.lon_ref, gnss_data.latitude, gnss_data.longitude, gnss_data.altitude))
+                if self.spoofed:
+                    self.ekf.recv_gnss_data(
+                        gnss_to_xyz(
+                            self.lat_ref, 
+                            self.lon_ref, 
+                            gnss_data.latitude + 0.0001,
+                            gnss_data.longitude + 0.0001, 
+                            gnss_data.altitude
+                        )
+                    )
+                else:
+                    self.ekf.recv_gnss_data(
+                        gnss_to_xyz(
+                            self.lat_ref, 
+                            self.lon_ref, 
+                            gnss_data.latitude, 
+                            gnss_data.longitude, 
+                            gnss_data.altitude
+                        )
+                    )
 
     def display(self):
         self.show_est_traj_fig()
         self.show_est_traj_fig_2d()
-        self.show_world_camera()
+        # self.show_world_camera()
 
     def cleanup(self):
         try:
@@ -132,7 +158,10 @@ class Environment:
             images.append(imageio.imread(os.path.join(image_folder, filename)))
         imageio.mimsave('world_cam.gif', images)
 
-        
+    def spoof_car_after(self, seconds):
+        time.sleep(seconds)
+        print('Spoofing GNSS data...')
+        self.spoofed = True
 
 
 def create_env():

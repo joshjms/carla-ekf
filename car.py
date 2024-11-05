@@ -1,5 +1,6 @@
-import weakref
-
+import os
+import carla
+import time
 from queue import Queue
 
 from sensors import IMU, GNSS
@@ -27,6 +28,13 @@ class Car:
         Start the car autopilot
         '''
         self.vehicle.set_autopilot(True)
+
+    def stop(self):
+        '''
+        Stop the car autopilot
+        '''
+        self.vehicle.set_autopilot(False)
+        time.sleep(15)
 
     def get_id(self):
         '''
